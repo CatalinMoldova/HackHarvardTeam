@@ -6,18 +6,23 @@ Example usage of the 11Labs Speech-to-Text API
 import os
 import sys
 from speech_to_text_service import SpeechToTextService
+from gemini_client import GeminiClient
 from config import Config
 
 def main():
     """Main function demonstrating API usage"""
     
-    print("=== 11Labs Speech-to-Text API Example ===\n")
+    print("=== 11Labs Speech-to-Text API + Gemini AI Example ===\n")
     
     try:
-        # Initialize the service
+        # Initialize the services
         print("Initializing Speech-to-Text service...")
         stt_service = SpeechToTextService()
-        print("✓ Service initialized successfully\n")
+        print("✓ Speech-to-Text service initialized successfully")
+        
+        print("Initializing Gemini AI service...")
+        gemini_client = GeminiClient()
+        print("✓ Gemini AI service initialized successfully\n")
         
         # Get service information
         print("Getting service information...")
@@ -80,12 +85,49 @@ def main():
             print("⚠ No audio files found for batch processing.")
             print("Please add some audio files to test batch transcription.")
         
+        # Example 3: Gemini AI Text Processing
+        print("=== Example 3: Gemini AI Text Processing ===")
+        
+        # Interactive Gemini demo
+        print("Let's test Gemini AI! (Type 'quit' to exit)")
+        while True:
+            user_input = input("\nEnter your prompt for Gemini: ").strip()
+            
+            if user_input.lower() in ['quit', 'exit', 'q']:
+                break
+                
+            if user_input:
+                try:
+                    print("Processing with Gemini AI...")
+                    response = gemini_client.simple_prompt(user_input)
+                    print(f"\nGemini Response:\n{response}")
+                except Exception as e:
+                    print(f"✗ Gemini error: {e}")
+            else:
+                print("Please enter a valid prompt.")
+        
+        # Example with predefined prompts
+        print("\n=== Example 4: Predefined Gemini Prompts ===")
+        sample_prompts = [
+            "Explain quantum computing in simple terms",
+            "Write a short poem about artificial intelligence",
+            "What are the benefits of renewable energy?"
+        ]
+        
+        for i, prompt in enumerate(sample_prompts, 1):
+            print(f"\nSample {i}: {prompt}")
+            try:
+                response = gemini_client.simple_prompt(prompt)
+                print(f"Response: {response[:200]}{'...' if len(response) > 200 else ''}")
+            except Exception as e:
+                print(f"✗ Error: {e}")
+        
         print("\n=== Example completed ===")
         
     except Exception as e:
         print(f"✗ Error: {e}")
         print("\nPlease make sure you have:")
-        print("1. Set your ELEVENLABS_API_KEY in a .env file or environment variable")
+        print("1. Set your ELEVENLABS_API_KEY and GEMINI_API_KEY in a .env file or environment variables")
         print("2. Installed required dependencies: pip install -r requirements.txt")
         print("3. Valid audio files to transcribe")
         sys.exit(1)
