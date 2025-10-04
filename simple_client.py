@@ -17,7 +17,7 @@ class SimpleElevenLabsClient:
         if not os.path.exists(audio_file_path):
             return {"success": False, "error": f"File not found: {audio_file_path}"}
         
-        url = f"{self.base_url}/speech-to-text"
+        url = f"{self.base_url}/speech-to-text/transcribe"
         headers = {"xi-api-key": self.api_key}
         
         try:
