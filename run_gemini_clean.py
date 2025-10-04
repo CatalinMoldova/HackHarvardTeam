@@ -38,17 +38,26 @@ if __name__ == "__main__":
     print("Type your message and press Enter. Type 'quit' to exit.\n")
     
     while True:
-        user_input = input("You: ").strip()
-        
-        if user_input.lower() in ['quit', 'exit', 'q']:
-            print("👋 Goodbye!")
+        try:
+            user_input = input("You: ").strip()
+            
+            if user_input.lower() in ['quit', 'exit', 'q']:
+                print("👋 Goodbye!")
+                break
+            
+            if user_input:
+                try:
+                    response = clean_gemini_prompt(user_input)
+                    print(f"Gemini: {response}\n")
+                except Exception as e:
+                    print(f"Error: {e}\n")
+            else:
+                print("Please enter a message.")
+        except EOFError:
+            # Handle end of input gracefully
+            print("\n👋 Input ended. Goodbye!")
             break
-        
-        if user_input:
-            try:
-                response = clean_gemini_prompt(user_input)
-                print(f"Gemini: {response}\n")
-            except Exception as e:
-                print(f"Error: {e}\n")
-        else:
-            print("Please enter a message.")
+        except KeyboardInterrupt:
+            # Handle Ctrl+C gracefully
+            print("\n\n👋 Goodbye!")
+            break
