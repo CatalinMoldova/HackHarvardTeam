@@ -70,11 +70,53 @@ An individual user wants help improving their personal schedule (day or week). T
 - User rejects multiple consecutive proposals: system summarizes what has been tried and asks for new constraints to reduce iteration fatigue.
 - Calendar has overlapping or duplicate events: system flags conflicts and may propose resolving overlaps before broader optimization. 
 - User revokes Google Calendar permission mid‑session: system halts further sync proposals and clearly indicates that changes cannot be applied until reconnected. 
-- Long periods with no events (e.g., open afternoons): system asks whether to preserve open time or fill with suggested wellness/rest activities [NEEDS CLARIFICATION: Should system proactively suggest new event categories?].
+- Long periods with no events (e.g., open afternoons): system asks whether to preserve open time or (hackathon assumption) may optionally suggest a single generic "Focus / Rest" block; no automatic multi-category generation.
 - User expresses sleep concern but no sleep events exist: system asks typical sleep schedule and desired target before proposing changes. 
-- Time zone change between sessions: system confirms intended time zone context before applying shifts [NEEDS CLARIFICATION: Time zone handling policy].
+- Time zone change between sessions: system uses Google Calendar's primary time zone each session; if user device TZ differs it displays a banner offering a one-click alignment; no historical conversion.
 
 ## Requirements *(mandatory)*
+
+## MVP Scope & Phased Roadmap
+This section classifies Functional Requirements for a hackathon demo emphasizing a polished conversational scheduling experience with clear visual differentiation and safe calendar interaction.
+
+Principles:
+- Demo Impact: Visibly impressive within first 2 minutes (voice/problem input → clarified → proposal appears side-by-side).
+- Feasibility: Implementable with lightweight engineering (avoid deep optimization algorithms beyond heuristics).
+- Safety: Non-destructive calendar changes with explicit user control.
+- Polish over breadth: Fewer features executed cleanly instead of incomplete breadth.
+
+MVP (Demo MUST show): FR-001, FR-002, FR-003, FR-004, FR-005, FR-006, FR-008, FR-010 (basic rationale), FR-011, FR-012, FR-019, FR-020, FR-022, FR-024.
+
+Modified-for-MVP (lightweight form):
+- FR-007: If implemented, allow simple per-change checkbox or fallback to whole-proposal accept.
+- FR-009: Sequential sync with error list (no advanced rollback UI).
+- FR-021: Basic export button if time allows (plain .txt already defined).
+
+Stretch (Add if time remains): FR-013, FR-014, FR-015, FR-016, FR-017, FR-018, FR-021 (if omitted), FR-023.
+
+Future (Out of hackathon scope): Advanced scheduling optimization (e.g., constraint solver), multi-user collaboration, long-term analytics, ML personalization beyond heuristics.
+
+Visual / Interaction Priorities:
+1. Immediate calendar load + side-by-side current vs proposed.
+2. Conversational panel: speech → transcript → AI question under 2s target.
+3. Diff highlighting for add/move/remove.
+4. Approve flow with clear confirmation + success indicator.
+5. Rationale snippet per changed event.
+
+Suggested Demo Script:
+1. User: "My Tuesdays are too hectic." → Clarifying question.
+2. User answers specifying meeting + sleep goal.
+3. Proposal appears with 3 change types.
+4. User refines one change.
+5. Approve → sync indicator.
+
+Qualitative Demo KPIs:
+- First proposal under 60s from start.
+- ≥1 clarifying question before proposal.
+- 3 distinct change types shown.
+- Immediate visual comprehension of differences.
+
+Post-Demo Expansion Order: FR-013 (Undo) → FR-017 (Priorities) → FR-016 (Sleep conflicts) → FR-023 (Retry/backoff robustness) → FR-014 (Iteration cap UI) → FR-018 (Preference persistence) → FR-015 (Large block confirmation sophistication).
 
 ### Functional Requirements
 - **FR-001**: System MUST ingest and display the user's current schedule (day and week views) sourced from Google Calendar without modifying events on initial load.
@@ -83,26 +125,41 @@ An individual user wants help improving their personal schedule (day or week). T
 - **FR-004**: System MUST maintain an iterative dialog history transcript visible in the third panel.
 - **FR-005**: System MUST produce a proposed schedule that highlights differences from the current schedule (e.g., moved events, added blocks, removed events) without committing changes.
 - **FR-006**: System MUST allow the user to request modifications to the proposal using natural language (e.g., "Move the workout to 7 AM"), updating the proposal accordingly.
-- **FR-007**: System MUST allow selective acceptance or rejection of individual proposed changes before final approval [NEEDS CLARIFICATION: Granular accept per event vs whole proposal].
+- **FR-007**: System MUST allow selective acceptance or rejection of individual proposed changes before final approval (granularity = per event/change item; batch accept all also available).
 - **FR-008**: System MUST allow the user to approve the complete proposed schedule, triggering synchronization of changes back to Google Calendar.
 - **FR-009**: System MUST handle sync operations atomically per event: failed updates must not partially corrupt unaffected events and must report which failed.
 - **FR-010**: System MUST provide summary rationale for each proposed change (e.g., "Moved Lunch earlier to ensure 8-hour sleep window").
 - **FR-011**: System MUST allow user to switch context between day view and week view; proposals must reflect the currently active context.
 - **FR-012**: System MUST warn the user before discarding an in-progress proposal when switching context or starting a new problem statement.
-- **FR-013**: System MUST support undo of last applied proposal within the current session [NEEDS CLARIFICATION: Undo time scope, persistence across sessions].
-- **FR-014**: System MUST log each proposal iteration count and stop after a threshold while prompting user for new constraints [NEEDS CLARIFICATION: Max iteration threshold].
-- **FR-015**: System MUST request explicit confirmation before creating or deleting any calendar event representing a significant time block (longer than threshold) [NEEDS CLARIFICATION: Threshold duration].
-- **FR-016**: System MUST flag potential health/sleep conflicts when user requests changes that reduce sleep below a minimum target [NEEDS CLARIFICATION: Default minimum sleep hours].
-- **FR-017**: System MUST allow user to specify priorities (e.g., sleep, exercise, focus work) and reflect them in scheduling decisions [NEEDS CLARIFICATION: Priority input format].
-- **FR-018**: System MUST persist user preference settings for priorities and constraints between sessions [NEEDS CLARIFICATION: Retention duration & deletion policy].
+- **FR-013**: System MUST support undo of the last applied proposal within the current browser session only (no persistence after page reload).
+- **FR-014**: System MUST log each proposal iteration count and, after 5 iterations without approval, prompt the user to refine constraints or accept best effort.
+- **FR-015**: System MUST request explicit confirmation before creating or deleting any calendar event longer than 60 minutes.
+- **FR-016**: System MUST flag potential health/sleep conflicts when requested changes reduce estimated sleep below 7 hours (default minimum target adjustable by user preference).
+- **FR-017**: System MUST allow user to specify up to 5 priorities (sleep, exercise, focus work, social, recovery) ranked by drag-and-drop order (higher = more protected) influencing proposals.
+- **FR-018**: System MUST persist user preference settings for priorities and constraints for the duration of the hackathon demo only (in local storage) and allow a one-click "Clear Preferences" action.
 - **FR-019**: System MUST display a non-anthropomorphized AI visual (neutral avatar or waveform) without implying human identity.
-- **FR-020**: System MUST differentiate clearly between current and proposed schedule using visual encoding (color, side-by-side, or labeling) without accessibility barriers [NEEDS CLARIFICATION: Accessibility standards to meet].
-- **FR-021**: System MUST provide a transcript export option (text) for user reference [NEEDS CLARIFICATION: Format and retention].
+- **FR-020**: System MUST differentiate clearly between current and proposed schedule using color + side-by-side panels meeting WCAG AA contrast for text and event color badges.
+- **FR-021**: System MUST provide a transcript export option as a downloadable plain text (.txt) file for the active session only (not stored server-side post session end).
 - **FR-022**: System MUST obtain user consent before first syncing changes to Google Calendar referencing the scope of modifications.
-- **FR-023**: System MUST recover gracefully from network loss by queueing unsynced approved proposals and prompting retry [NEEDS CLARIFICATION: Retry strategy/backoff].
-- **FR-024**: System MUST restrict actions to authenticated users [NEEDS CLARIFICATION: Authentication mechanism].
+- **FR-023**: System MUST recover gracefully from network loss by retrying failed event syncs up to 3 times with exponential backoff (2s, 4s, 8s) then presenting a manual "Retry All" button.
+- **FR-024**: System MUST restrict actions to users authenticated exclusively via Google OAuth (using only the minimal required scopes including Calendar read/write). Other auth providers are explicitly out of scope for this feature iteration.
 
-*Ambiguity markers intentionally retained to signal areas needing stakeholder clarification prior to implementation planning.*
+*All prior ambiguity markers have been resolved with explicit hackathon-scope assumptions.*
+
+### Hackathon Assumptions (Consolidated)
+1. Suggestion scope: only one generic optional "Focus / Rest" block in large empty spans; no rich category synthesis.
+2. Time zone: always align to Google Calendar primary TZ; show banner if browser differs; no historical conversion logic.
+3. Selective acceptance: per event/change item plus bulk accept all.
+4. Undo: single-level undo of last applied proposal; lost on reload.
+5. Iteration cap: prompt user after 5 proposal revisions without approval.
+6. Significant event threshold: 60 minutes.
+7. Minimum sleep target: 7 hours default (user adjustable).
+8. Priority model: up to 5 predefined categories ordered by drag-and-drop.
+9. Preference persistence: local storage only; cleared manually; no server retention guarantees.
+10. Accessibility: commit to WCAG AA color contrast for schedule differentiation.
+11. Transcript export: plain text download only; ephemeral.
+12. Network retry: 3 attempts with 2s, 4s, 8s backoff then manual retry option.
+13. Authentication: Google OAuth only; minimal Calendar scopes.
 
 ### Key Entities *(include if feature involves data)*
 - **User**: Represents an individual interacting with the system; attributes: identity, preferences/priorities, consent state, last view context (day/week). Relationship: owns Schedule View, initiates Problem Statements.
@@ -121,17 +178,17 @@ An individual user wants help improving their personal schedule (day or week). T
 *GATE: Automated checks run during main() execution*
 
 ### Content Quality
-- [ ] No implementation details (languages, frameworks, APIs)
-- [ ] Focused on user value and business needs
-- [ ] Written for non-technical stakeholders
-- [ ] All mandatory sections completed
+- [x] No implementation details (languages, frameworks, APIs)
+- [x] Focused on user value and business needs
+- [x] Written for non-technical stakeholders
+- [x] All mandatory sections completed
 
 ### Requirement Completeness
-- [ ] No [NEEDS CLARIFICATION] markers remain
-- [ ] Requirements are testable and unambiguous  
-- [ ] Success criteria are measurable
-- [ ] Scope is clearly bounded
-- [ ] Dependencies and assumptions identified
+- [x] No [NEEDS CLARIFICATION] markers remain
+- [x] Requirements are testable and unambiguous  
+- [x] Success criteria are measurable
+- [x] Scope is clearly bounded
+- [x] Dependencies and assumptions identified (see Hackathon Assumptions section)
 
 ---
 
