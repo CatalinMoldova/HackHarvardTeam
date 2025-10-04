@@ -90,14 +90,14 @@ class ElevenLabsAudioService:
         Returns:
             Dictionary containing the audio data and metadata
         """
+        # Default parameters
+        voice_id = kwargs.get('voice_id', 'JBFqnCBsd6RMkjVDRZzb')
+        
         url = f"{self.base_url}/text-to-speech/{voice_id}"
         headers = {
             "xi-api-key": self.api_key,
             "Content-Type": "application/json"
         }
-        
-        # Default parameters
-        voice_id = kwargs.get('voice_id', 'JBFqnCBsd6RMkjVDRZzb')
         model_id = kwargs.get('model_id', 'eleven_multilingual_v2')
         
         data = {
@@ -150,10 +150,10 @@ class ElevenLabsAudioService:
         Returns:
             Dictionary containing both transcription and TTS results
         """
-        print("🔄 Starting transcribe-and-speak workflow...")
+        print("Starting transcribe-and-speak workflow...")
         
         # Step 1: Speech to Text
-        print("📝 Transcribing audio...")
+        print("Transcribing audio...")
         stt_result = self.speech_to_text(audio_file_path, **kwargs)
         
         if not stt_result["success"]:
@@ -163,10 +163,10 @@ class ElevenLabsAudioService:
                 "stt_result": stt_result
             }
         
-        print(f"✅ Transcription: {stt_result['text']}")
+        print(f"SUCCESS: Transcription: {stt_result['text']}")
         
         # Step 2: Text to Speech
-        print("🎵 Converting text to speech...")
+        print("Converting text to speech...")
         tts_result = self.text_to_speech(
             stt_result["text"], 
             save_to_file=True,
@@ -182,7 +182,7 @@ class ElevenLabsAudioService:
                 "tts_result": tts_result
             }
         
-        print(f"✅ Audio generated: {tts_result.get('saved_file', 'Not saved')}")
+        print(f"SUCCESS: Audio generated: {tts_result.get('saved_file', 'Not saved')}")
         
         return {
             "success": True,
